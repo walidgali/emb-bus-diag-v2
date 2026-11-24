@@ -163,7 +163,7 @@ int stats_update(diag_stats_t *st, double val) {
     st->avg_val = prev_avg + (val - prev_avg) / n;
     st->variance = ((n - 1.0) * st->variance + (val - prev_avg) * (val - st->avg_val)) / n;
 
-    if (prev_n < 2) {
+    if (prev_n < DIAG_Z_MIN_HISTORY) {
         st->z_score = 0.0;
     } else if (prev_std > 1e-12) {
         st->z_score = (val - prev_avg) / prev_std;

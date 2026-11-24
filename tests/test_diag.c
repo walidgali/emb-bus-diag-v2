@@ -112,6 +112,11 @@ static void test_zscore(void) {
     for (int i = 0; i < 5; i++) stats_update(&s, demo[i]);
     CHECK(stats_is_outlier(&s));
 
+    /* too little history: no z-score yet (avoids small-sample false alarms) */
+    stats_init(&s);
+    stats_update(&s, 10.5); stats_update(&s, 11.0); stats_update(&s, 12.5);
+    CHECK_NEAR(s.z_score, 0.0, 0);
+
     /* zero-variance history */
     stats_init(&s);
     for (int i = 0; i < 5; i++) stats_update(&s, 10.0);

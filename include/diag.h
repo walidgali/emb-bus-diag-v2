@@ -6,6 +6,7 @@
 
 #define DIAG_OUTLIER_Z   3.0   /* |z| above this is flagged as an outlier   */
 #define DIAG_Z_SATURATED 99.0  /* z reported when history has zero variance */
+#define DIAG_Z_MIN_HISTORY 4U  /* samples needed before z-score is reported */
 
 typedef enum {
     STATUS_OK   = 0,

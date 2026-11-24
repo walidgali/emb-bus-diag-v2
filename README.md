@@ -51,7 +51,7 @@ Environment: `EMBDIAG_MOCK_SEED` (reproducible mock data), `EMBDIAG_CAN_IFACE`
 ## Statistics notes
 
 * **Z-score** scores each new sample against the history *before* it, so a spike
-  is detected even in short series. `|z| > 3` is flagged `OUTLIER`. If the
+  is detected even in short series (reported once 4 earlier samples exist). `|z| > 3` is flagged `OUTLIER`. If the
   history has zero variance, any deviation reports `±99`.
 * **Trend** is the least-squares slope against the sample index.
 * **Range** is `max - min`.
