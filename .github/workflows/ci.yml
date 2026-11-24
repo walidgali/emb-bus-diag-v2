@@ -1,0 +1,68 @@
+name: C Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    name: Build + tests (with libmodbus)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmodbus-dev pkg-config
+      - name: Build
+        run: make clean && make WITH_MODBUS=1 all lib
+      - name: C unit tests, CLI smoke tests, Python/ctypes tests
+        run: make WITH_MODBUS=1 check
+
+  build-test-no-modbus:
+    name: Build + tests (without libmodbus)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      - name: Build and test
+        run: make clean && make WITH_MODBUS=0 check
+
+  sanitizers:
+    name: ASan + UBSan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmodbus-dev pkg-config
+      - name: Build and run C tests with sanitizers
+        run: make clean && make SAN=1 WITH_MODBUS=1 test
+
+  modbus-integration:
+    name: Modbus end-to-end (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # extra check: does not turn the badge red
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmodbus-dev pkg-config
+          python3 -m pip install -r requirements-dev.txt
+      - name: Build
+        run: make clean && make WITH_MODBUS=1 all
+      - name: Run against the pymodbus test server
+        run: |
+          python3 modbus_server.py &
+          SERVER=$!
+          sleep 3
+          ./emb-bus-diag-v2 --bus modbus -a 1 -r 0 -n 3 -i 10 -o /tmp/modbus_report.json
+          RC=$?
+          kill $SERVER || true
+          exit $RC

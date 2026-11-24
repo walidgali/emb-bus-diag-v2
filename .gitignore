@@ -1,0 +1,16 @@
+# Build artifacts
+obj/
+build/
+*.o
+emb-bus-diag-v2
+
+# Shared libraries
+*.so
+
+# Python environment & cache
+.venv/
+__pycache__/
+*.pyc
+
+# Reports
+report.json
