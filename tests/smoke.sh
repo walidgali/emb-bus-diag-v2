@@ -35,6 +35,10 @@ done
 "$BIN" --bus i2c -b 250 -a 0x48 > /dev/null 2>&1; rc=$?
 [ $rc -eq 1 ] && ok "missing i2c device -> exit 1" || bad "i2c missing returned $rc"
 
+# 5b. uart without a device: clean error, exit 1
+EMBDIAG_UART_DEV=/dev/nonexistent-tty "$BIN" --bus uart > /dev/null 2>&1; rc=$?
+[ $rc -eq 1 ] && ok "missing uart device -> exit 1" || bad "uart missing returned $rc"
+
 # 6. CRITICAL readings give exit code 2 (raw profile: 12000..12999 * 0.01 = 120+ V)
 "$BIN" --profile raw -n 2 -i 1 -o "$TMP/c.json" > "$TMP/c.txt" 2>&1; rc=$?
 [ $rc -eq 2 ] && ok "critical reading -> exit 2" || bad "critical returned $rc (want 2)"

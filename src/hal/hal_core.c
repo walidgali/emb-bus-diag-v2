@@ -5,6 +5,7 @@ extern const hal_ops_t i2c_ops;
 extern const hal_ops_t spi_ops;
 extern const hal_ops_t mock_ops;
 extern const hal_ops_t can_ops;
+extern const hal_ops_t uart_ops;
 #ifdef HAVE_MODBUS
 extern const hal_ops_t modbus_ops;
 #endif
@@ -15,6 +16,7 @@ const hal_ops_t *hal_get_ops(hal_bus_type_t type) {
         case BUS_TYPE_SPI:  return &spi_ops;
         case BUS_TYPE_MOCK: return &mock_ops;
         case BUS_TYPE_CAN:  return &can_ops;
+        case BUS_TYPE_UART: return &uart_ops;
 #ifdef HAVE_MODBUS
         case BUS_TYPE_MODBUS: return &modbus_ops;
 #endif

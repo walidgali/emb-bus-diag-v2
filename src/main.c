@@ -14,8 +14,8 @@
 static void usage(FILE *out, const char *prog) {
     fprintf(out,
         "Usage: %s [options]\n"
-        "  --bus <mock|i2c|spi|can|modbus>   bus backend (default: mock)\n"
-        "  -b <id>        bus id / SPI bus / CAN iface index   (default: 1)\n"
+        "  --bus <mock|i2c|spi|can|uart|modbus>   bus backend (default: mock)\n"
+        "  -b <id>        bus id / SPI bus / CAN iface / /dev/ttyUSB<id>  (default: 1)\n"
         "  -a <addr>      device address / chip select / CAN id / unit id (default: 1)\n"
         "  -r <reg>       register address                      (default: 0)\n"
         "  -n <count>     number of samples                     (default: 5)\n"
@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
             else if (strcmp(v, "i2c") == 0) bus_type = BUS_TYPE_I2C;
             else if (strcmp(v, "spi") == 0) bus_type = BUS_TYPE_SPI;
             else if (strcmp(v, "can") == 0) bus_type = BUS_TYPE_CAN;
+            else if (strcmp(v, "uart") == 0) bus_type = BUS_TYPE_UART;
             else if (strcmp(v, "modbus") == 0) bus_type = BUS_TYPE_MODBUS;
             else return bad_arg(a, v);
             i++;

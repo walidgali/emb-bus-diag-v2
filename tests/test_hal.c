@@ -39,8 +39,8 @@ int main(void) {
     CHECK(mock->read(d, 0, NULL, 2) == -1);
     hal_device_destroy(d);
 
-    /* unsupported / optional backends */
-    CHECK(hal_get_ops(BUS_TYPE_UART) == NULL);
+    /* optional backends */
+    CHECK(hal_get_ops(BUS_TYPE_UART) != NULL);
 #ifdef HAVE_MODBUS
     CHECK(hal_get_ops(BUS_TYPE_MODBUS) != NULL);
 #else
@@ -48,8 +48,8 @@ int main(void) {
 #endif
 
     /* hardware backends must fail cleanly (not crash) when the device is absent */
-    hal_bus_type_t hw[] = { BUS_TYPE_I2C, BUS_TYPE_SPI, BUS_TYPE_CAN };
-    for (size_t i = 0; i < 3; i++) {
+    hal_bus_type_t hw[] = { BUS_TYPE_I2C, BUS_TYPE_SPI, BUS_TYPE_CAN, BUS_TYPE_UART };
+    for (size_t i = 0; i < 4; i++) {
         const hal_ops_t *ops = hal_get_ops(hw[i]);
         CHECK(ops != NULL);
         hal_device_t *x = hal_device_create(hw[i], 250, 0x48);

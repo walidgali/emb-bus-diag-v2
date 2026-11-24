@@ -14,7 +14,7 @@ CFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -g
 endif
 
 HAL_SRCS = src/hal/hal_core.c src/hal/hal_i2c.c src/hal/hal_spi.c \
-           src/hal/hal_mock.c src/hal/hal_can.c
+           src/hal/hal_mock.c src/hal/hal_can.c src/hal/hal_uart.c
 ifeq ($(WITH_MODBUS),1)
 CFLAGS  += -DHAVE_MODBUS
 LDLIBS  += -lmodbus
@@ -52,12 +52,17 @@ $(BUILD)/test_hal: tests/test_hal.c $(HAL_SRCS)
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
-test: $(BUILD)/test_diag $(BUILD)/test_hal $(TARGET)
+$(BUILD)/test_uart: tests/test_uart.c $(HAL_SRCS)
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+test: $(BUILD)/test_diag $(BUILD)/test_hal $(BUILD)/test_uart $(TARGET)
 	./$(BUILD)/test_diag
 	./$(BUILD)/test_hal
+	./$(BUILD)/test_uart
 	sh tests/smoke.sh ./$(TARGET)
 
-py-test: $(LIB)
+py-test: $(LIB) $(TARGET)
 	python3 -m unittest discover -s tests -p 'test_*.py' -v
 
 check: test py-test

@@ -3,7 +3,7 @@
 # Emb-Bus-Diag V2
 
 A modular C11 diagnostic CLI for embedded systems: a Hardware Abstraction Layer
-(I2C, SPI, CAN, Modbus TCP, Mock), an online statistics engine (EMA, variance,
+(I2C, SPI, CAN, UART, Modbus TCP, Mock), an online statistics engine (EMA, variance,
 Z-score outlier detection, least-squares trend) and JSON reporting. The
 statistics engine is also exposed as a shared library for Python (ctypes).
 
@@ -17,7 +17,8 @@ statistics engine is also exposed as a shared library for Python (ctypes).
 | `src/main.c` | CLI |
 | `control.py` | Python/ctypes wrapper and demo |
 | `modbus_server.py` | pymodbus test server for `--bus modbus` |
-| `tests/` | C unit tests, CLI smoke tests, Python tests |
+| `tests/` | C unit tests, CLI smoke tests, Python tests (UART uses a pseudo-terminal) |
+| `docs/HARDWARE.md` | Wiring, bus options, UART protocol, output reference |
 
 ## Build
 
@@ -35,6 +36,7 @@ make SAN=1 test # same C tests with AddressSanitizer + UBSan
 ./emb-bus-diag-v2 --bus mock -n 10 -i 100
 ./emb-bus-diag-v2 --bus i2c -b 1 -a 0x40 -r 0x02 --profile ina219
 ./emb-bus-diag-v2 --bus i2c -b 1 -a 0x48 -r 0x00 --profile tmp102
+EMBDIAG_UART_DEV=/dev/ttyUSB0 ./emb-bus-diag-v2 --bus uart -r 2
 ./emb-bus-diag-v2 --help
 ```
 
@@ -45,8 +47,10 @@ Writes `report.json` (change with `-o`).
 Exit codes: `0` ok, `1` usage/init/read error, `2` a reading was CRITICAL or ERROR.
 
 Environment: `EMBDIAG_MOCK_SEED` (reproducible mock data), `EMBDIAG_CAN_IFACE`
-(default `vcan<bus>`), `EMBDIAG_MODBUS_HOST` / `EMBDIAG_MODBUS_PORT` (default
-`127.0.0.1:1502`).
+(default `vcan<bus>`), `EMBDIAG_UART_DEV` / `EMBDIAG_UART_BAUD` / `EMBDIAG_UART_MODE`,
+`EMBDIAG_MODBUS_HOST` / `EMBDIAG_MODBUS_PORT` (default `127.0.0.1:1502`).
+
+Wiring, per-bus options and the UART protocol are in [docs/HARDWARE.md](docs/HARDWARE.md).
 
 ## Statistics notes
 
