@@ -19,6 +19,7 @@ statistics engine is also exposed as a shared library for Python (ctypes).
 | `modbus_server.py` | pymodbus test server for `--bus modbus` |
 | `tests/` | C unit tests, CLI smoke tests, Python tests (UART uses a pseudo-terminal) |
 | `docs/HARDWARE.md` | Wiring, bus options, UART protocol, output reference |
+| `docs/GUIDE.ar.md` | Full step-by-step guide in Arabic, from zero (also as `docs/GUIDE.ar.docx`) |
 
 ## Build
 
@@ -51,6 +52,8 @@ Environment: `EMBDIAG_MOCK_SEED` (reproducible mock data), `EMBDIAG_CAN_IFACE`
 `EMBDIAG_MODBUS_HOST` / `EMBDIAG_MODBUS_PORT` (default `127.0.0.1:1502`).
 
 Wiring, per-bus options and the UART protocol are in [docs/HARDWARE.md](docs/HARDWARE.md).
+
+**Documentation:** [Arabic step-by-step guide (من الصفر)](docs/GUIDE.ar.md) · [Word version](docs/GUIDE.ar.docx) · [Hardware guide](docs/HARDWARE.md)
 
 ## Statistics notes
 
