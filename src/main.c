@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* Copyright (c) 2026 walidgali */
 #include "diag.h"
+#include "cloud.h"
 #include "hal.h"
 #include <errno.h>
 #include <math.h>
@@ -48,6 +49,7 @@ static int bad_arg(const char *opt, const char *val) {
 
 int main(int argc, char **argv) {
     hal_bus_type_t bus_type = BUS_TYPE_MOCK;
+    int enable_cloud = 0;
     unsigned long bus_id = 1, dev_addr = 1, reg_addr = 0, count = 5, interval = 200;
     diag_profile_t profile = PROFILE_INA219;
     int metric_set = 0, scale_set = 0;
@@ -56,6 +58,7 @@ int main(int argc, char **argv) {
     const char *report_path = "report.json";
 
     for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--cloud") == 0) { enable_cloud = 1; continue; }
         const char *a = argv[i];
         const char *v = (i + 1 < argc) ? argv[i + 1] : NULL;
 
@@ -158,6 +161,7 @@ int main(int argc, char **argv) {
         memset(&reading, 0, sizeof(reading));
         evaluate_signal(proc_raw, scale, metric, &reading);
         stats_update(&stats, reading.scaled_val);
+        if (enable_cloud) { cloud_mqtt_publish(&reading, &stats); }
         last_reading = reading;
         if (reading.status > worst) worst = reading.status;
 

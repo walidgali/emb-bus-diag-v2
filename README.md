@@ -92,3 +92,10 @@ This is a summary, not legal advice; the [LICENSE](LICENSE) file is what applies
 ## Commercial use and support
 
 Using the tool is free. Paid help is available on request: custom drivers and sensor profiles, integration into your product, training, and support. To ask, open an issue titled "Commercial" or contact the author through the GitHub profile.
+
+## ☁️ Cloud IoT Integration (V3)
+The tool now supports secure MQTT publishing for IoT applications.
+To test locally:
+1. Start the broker: `mosquitto -v`
+2. Subscribe to stats: `mosquitto_sub -t "diag/stats"`
+3. Run the tool with cloud flag: `./emb-bus-diag-v2 --bus mock -n 5 --cloud`

@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmodbus-dev pkg-config
+          sudo apt-get install -y build-essential libmodbus-dev libmosquitto-dev pkg-config
       - name: Build
         run: make clean && make WITH_MODBUS=1 all lib
       - name: C unit tests, CLI smoke tests, Python/ctypes tests
@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmodbus-dev pkg-config
+          sudo apt-get install -y build-essential libmodbus-dev libmosquitto-dev pkg-config
       - name: Build and run C tests with sanitizers
         run: make clean && make SAN=1 WITH_MODBUS=1 test
 
@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmodbus-dev pkg-config
+          sudo apt-get install -y build-essential libmodbus-dev libmosquitto-dev pkg-config
           python3 -m pip install -r requirements-dev.txt
       - name: Build
         run: make clean && make WITH_MODBUS=1 all
