@@ -27,7 +27,7 @@ TARGET = emb-bus-diag-v2
 LIB    = libembdiag.so
 BUILD  = build
 
-.PHONY: all lib test py-test check clean
+.PHONY: all lib test py-test sim check clean
 
 all: $(TARGET)
 
@@ -65,7 +65,15 @@ test: $(BUILD)/test_diag $(BUILD)/test_hal $(BUILD)/test_uart $(TARGET)
 py-test: $(LIB) $(TARGET)
 	python3 -m unittest discover -s tests -p 'test_*.py' -v
 
-check: test py-test
+# Hardware simulation: runs the real CLI under an LD_PRELOAD system-call simulator
+sim: $(TARGET) $(BUILD)/libhwsim.so
+	sh tests/sim/run_sim.sh ./$(TARGET) ./$(BUILD)/libhwsim.so
+
+$(BUILD)/libhwsim.so: tests/sim/hwsim.c
+	@mkdir -p $(BUILD)
+	$(CC) -std=gnu11 -Wall -Wextra -O2 -fPIC -shared -Wno-nonnull-compare -Wno-maybe-uninitialized -o $@ $< -ldl
+
+check: test py-test sim
 
 clean:
 	rm -rf obj $(BUILD) $(TARGET) $(LIB) report.json

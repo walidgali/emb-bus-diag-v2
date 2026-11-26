@@ -20,7 +20,7 @@ typedef enum {
 typedef struct {
     hal_bus_type_t type;
     uint8_t bus_id;
-    uint8_t dev_addr;
+    uint32_t dev_addr;   /* I2C addr, SPI CS, Modbus unit (<=255) or CAN id (11/29 bit) */
     uint8_t reg_addr;
     int fd;              /* file descriptor / socket (I2C, SPI, CAN), -1 when closed */
     void *private_data;  /* backend context (e.g. libmodbus handle) */
@@ -37,7 +37,7 @@ typedef struct {
 
 /* Returns NULL when the bus type is unsupported or was not compiled in. */
 const hal_ops_t *hal_get_ops(hal_bus_type_t type);
-hal_device_t *hal_device_create(hal_bus_type_t type, uint8_t bus_id, uint8_t dev_addr);
+hal_device_t *hal_device_create(hal_bus_type_t type, uint8_t bus_id, uint32_t dev_addr);
 void hal_device_destroy(hal_device_t *dev);
 
 #endif

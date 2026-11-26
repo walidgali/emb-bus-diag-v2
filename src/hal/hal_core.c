@@ -24,7 +24,7 @@ const hal_ops_t *hal_get_ops(hal_bus_type_t type) {
     }
 }
 
-hal_device_t *hal_device_create(hal_bus_type_t type, uint8_t bus_id, uint8_t dev_addr) {
+hal_device_t *hal_device_create(hal_bus_type_t type, uint8_t bus_id, uint32_t dev_addr) {
     hal_device_t *dev = malloc(sizeof(*dev));
     if (dev) {
         dev->type = type;

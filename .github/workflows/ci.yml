@@ -19,6 +19,8 @@ jobs:
         run: make clean && make WITH_MODBUS=1 all lib
       - name: C unit tests, CLI smoke tests, Python/ctypes tests
         run: make WITH_MODBUS=1 check
+      - name: Hardware simulation (I2C, SPI, CAN via LD_PRELOAD)
+        run: make WITH_MODBUS=1 sim
 
   build-test-no-modbus:
     name: Build + tests (without libmodbus)

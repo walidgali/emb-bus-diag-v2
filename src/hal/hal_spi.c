@@ -9,7 +9,7 @@
 #define SPI_MAX_READ 32U
 
 static int spi_init(hal_device_t *dev) {
-    if (!dev) return -1;
+    if (!dev || dev->dev_addr > 255) return -1;
     char dev_path[32];
     snprintf(dev_path, sizeof(dev_path), "/dev/spidev%u.%u", (unsigned)dev->bus_id, (unsigned)dev->dev_addr);
     int fd = open(dev_path, O_RDWR);

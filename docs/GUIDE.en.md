@@ -168,7 +168,7 @@ sudo ip link add dev vcan0 type vcan && sudo ip link set up vcan0
 cansend vcan0 123#5DC0        # from the can-utils package
 ```
 
-For a real interface: `export EMBDIAG_CAN_IFACE=can0` after bringing it up at the right bit rate. Supported ids go up to 255.
+For a real interface: `export EMBDIAG_CAN_IFACE=can0` after bringing it up at the right bit rate. `-a` accepts 11-bit ids up to `0x7FF` and 29-bit extended ids up to `0x1FFFFFFF`.
 
 ### UART
 
@@ -220,7 +220,7 @@ for v in [10.5, 11.0, 12.5, 10.0, 25.0]:
 |---|---|---|
 | `--bus` | `mock`, `i2c`, `spi`, `can`, `uart` or `modbus` | `mock` |
 | `-b <id>` | Bus number (selects `/dev/i2c-N`, `spidevN`, `vcanN` or `ttyUSBN`) | 1 |
-| `-a <addr>` | Device address, SPI chip select, CAN id or Modbus unit id | 1 |
+| `-a <addr>` | Device address, SPI chip select or Modbus unit id (0-255); CAN id (up to `0x1FFFFFFF`) | 1 |
 | `-r <reg>` | Register address (0 to 255) | 0 |
 | `-n <count>` | Number of samples | 5 |
 | `-i <ms>` | Interval between samples in milliseconds | 200 |
@@ -285,4 +285,5 @@ git push
 - The BME280 sensor is not supported: its pressure reading needs calibration coefficients and compensation that are not implemented.
 - The thresholds (voltage, temperature, pressure) are fixed in the code; changing them means editing `src/diag.c` and rebuilding.
 - The UART protocol is specific to this tool (one request byte, two reply bytes), not a standard protocol.
-- Supported CAN ids go only up to 255.
+- On non-CAN buses `-a` is limited to 255; CAN accepts 11-bit and 29-bit ids.
+- I2C, SPI and CAN are also exercised by a user-space hardware simulator (`make sim`), which checks the driver logic but is not a substitute for real hardware.

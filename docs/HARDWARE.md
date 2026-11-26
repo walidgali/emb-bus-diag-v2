@@ -43,7 +43,8 @@ sudo modprobe vcan && sudo ip link add dev vcan0 type vcan && sudo ip link set u
 cansend vcan0 123#5DC0          # 0x5DC0 -> 12.0 V (can-utils package)
 ```
 
-Only ids up to 255 can be selected (`-a` is 8 bit). Frames with fewer bytes than needed are rejected.
+`-a` accepts 11-bit standard ids (up to `0x7FF`) and 29-bit extended ids (above `0x7FF`, up to `0x1FFFFFFF`). Error, RTR and
+other-id frames are skipped; frames with fewer bytes than needed are rejected.
 
 ## UART
 

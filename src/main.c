@@ -16,7 +16,8 @@ static void usage(FILE *out, const char *prog) {
         "Usage: %s [options]\n"
         "  --bus <mock|i2c|spi|can|uart|modbus>   bus backend (default: mock)\n"
         "  -b <id>        bus id / SPI bus / CAN iface / /dev/ttyUSB<id>  (default: 1)\n"
-        "  -a <addr>      device address / chip select / CAN id / unit id (default: 1)\n"
+        "  -a <addr>      device address / SPI chip select / Modbus unit id (0-255)\n"
+        "                 or CAN id (11-bit up to 0x7FF, 29-bit extended up to 0x1FFFFFFF)  (default: 1)\n"
         "  -r <reg>       register address                      (default: 0)\n"
         "  -n <count>     number of samples                     (default: 5)\n"
         "  -i <ms>        interval between samples in ms        (default: 200)\n"
@@ -73,7 +74,7 @@ int main(int argc, char **argv) {
             if (parse_ulong(v, 255, &bus_id) != 0) return bad_arg(a, v);
             i++;
         } else if (strcmp(a, "-a") == 0) {
-            if (parse_ulong(v, 255, &dev_addr) != 0) return bad_arg(a, v);
+            if (parse_ulong(v, 0x1FFFFFFFUL, &dev_addr) != 0) return bad_arg(a, v);
             i++;
         } else if (strcmp(a, "-r") == 0) {
             if (parse_ulong(v, 255, &reg_addr) != 0) return bad_arg(a, v);
@@ -109,6 +110,11 @@ int main(int argc, char **argv) {
         }
     }
 
+    if (bus_type != BUS_TYPE_CAN && dev_addr > 255) {
+        fprintf(stderr, "Error: invalid value '%lu' for -a (max 255; only CAN accepts larger ids)\n", dev_addr);
+        return EXIT_FAILURE_;
+    }
+
     const diag_metric_t metric = metric_set ? metric_opt : profile_default_metric(profile);
     const double scale = scale_set ? scale_opt : profile_default_scale(profile);
 
@@ -117,7 +123,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Error: the selected bus is not supported in this build.\n");
         return EXIT_FAILURE_;
     }
-    hal_device_t *dev = hal_device_create(bus_type, (uint8_t)bus_id, (uint8_t)dev_addr);
+    hal_device_t *dev = hal_device_create(bus_type, (uint8_t)bus_id, (uint32_t)dev_addr);
     if (!dev) {
         fprintf(stderr, "Error: out of memory.\n");
         return EXIT_FAILURE_;

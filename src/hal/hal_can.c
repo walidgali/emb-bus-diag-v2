@@ -15,7 +15,7 @@
 
 /* Interface name: $EMBDIAG_CAN_IFACE if set, otherwise "vcan<bus_id>". */
 static int can_init(hal_device_t *dev) {
-    if (!dev) return -1;
+    if (!dev || dev->dev_addr > CAN_EFF_MASK) return -1;
     int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (s < 0) return -1;
 
@@ -47,7 +47,7 @@ static long ms_until(const struct timespec *deadline) {
     return (deadline->tv_sec - now.tv_sec) * 1000L + (deadline->tv_nsec - now.tv_nsec) / 1000000L;
 }
 
-/* Waits (up to 1 s) for a data frame whose id equals dev_addr; frames from
+/* Waits (up to 1 s) for a data frame whose id equals dev_addr (11-bit, or 29-bit when > 0x7FF); frames from
  * other nodes, RTR and error frames are skipped. `reg` is unused on CAN. */
 static int can_read(hal_device_t *dev, uint8_t reg, uint8_t *buffer, size_t len) {
     (void)reg;
@@ -69,9 +69,11 @@ static int can_read(hal_device_t *dev, uint8_t reg, uint8_t *buffer, size_t len)
         if (nbytes != (ssize_t)sizeof(frame)) return -1;
         if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) continue;
 
-        canid_t id = (frame.can_id & CAN_EFF_FLAG) ? (frame.can_id & CAN_EFF_MASK)
-                                                   : (frame.can_id & CAN_SFF_MASK);
-        if (id != dev->dev_addr) continue;
+        /* dev_addr > 0x7FF selects a 29-bit extended id, otherwise 11-bit standard */
+        int is_ext = (frame.can_id & CAN_EFF_FLAG) != 0;
+        int want_ext = dev->dev_addr > CAN_SFF_MASK;
+        canid_t id = is_ext ? (frame.can_id & CAN_EFF_MASK) : (frame.can_id & CAN_SFF_MASK);
+        if (is_ext != want_ext || id != dev->dev_addr) continue;
         if (frame.can_dlc < len) return -1;  /* short frame: never return stale bytes */
         memcpy(buffer, frame.data, len);
         return 0;

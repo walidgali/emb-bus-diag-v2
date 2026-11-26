@@ -7,7 +7,7 @@
 /* Server: $EMBDIAG_MODBUS_HOST (default 127.0.0.1), $EMBDIAG_MODBUS_PORT (default 1502).
  * dev_addr is used as the Modbus unit id; `reg` is the holding-register address. */
 static int modbus_init(hal_device_t *dev) {
-    if (!dev) return -1;
+    if (!dev || dev->dev_addr > 255) return -1;
 
     const char *host = getenv("EMBDIAG_MODBUS_HOST");
     const char *port_s = getenv("EMBDIAG_MODBUS_PORT");
