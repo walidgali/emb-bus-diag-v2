@@ -1,5 +1,7 @@
 # Hardware guide
 
+*العربية: [HARDWARE.ar.md](HARDWARE.ar.md)*
+
 All examples assume Linux (Raspberry Pi OS, Ubuntu, Debian). Run `./emb-bus-diag-v2 --help`
 for every option. Use `--bus mock` first to confirm the tool itself works.
 
@@ -87,5 +89,10 @@ python3 modbus_server.py &                 # register 0 = 0x5DC0 -> 12.0 V
 
 `Val` scaled value, `OK/WARNING/CRITICAL/ERROR` threshold status, `EMA` smoothed value (alpha 0.2),
 `Z` z-score against earlier samples (needs 4; `OUTLIER` when |Z| > 3), `Trend` least-squares slope
-per sample, `Range` max - min. Thresholds are built in: voltage 3.0-14.8 V critical / 3.3-14.2 V warning;
-temperature -40..125 C valid, 0..75 C critical, 5..60 C warning; pressure 950-1050 hPa normal.
+per sample, `Range` max - min. Thresholds are built in (a reading is OK inside the range; leaving it raises the status):
+
+| Metric | OK | WARNING | CRITICAL | ERROR |
+|--------|----|---------|----------|-------|
+| Voltage (V) | 3.3 to 14.2 | below 3.3 or above 14.2 | below 3.0 or above 14.8 | negative |
+| Temperature (C) | 5 to 60 | below 5 or above 60 | below 0 or above 75 | below -40 or above 125 |
+| Pressure (hPa) | 950 to 1050 | below 950 or above 1050 | below 850 or above 1080 | below 300 or above 1200 |
