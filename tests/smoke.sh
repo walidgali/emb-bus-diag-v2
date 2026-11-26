@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 walidgali
 # CLI smoke tests. Usage: sh tests/smoke.sh ./emb-bus-diag-v2
 set -u
 BIN=${1:-./emb-bus-diag-v2}

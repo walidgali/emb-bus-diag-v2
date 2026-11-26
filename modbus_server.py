@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 walidgali
 """Tiny Modbus TCP test server for the --bus modbus backend.
 
 Requires: pip install -r requirements-dev.txt   (pymodbus 3.6.x)

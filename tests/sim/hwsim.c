@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Copyright (c) 2026 walidgali */
 /* LD_PRELOAD hardware simulator.
  *
  * Lets the real emb-bus-diag-v2 binary run its I2C, SPI and CAN code paths on a

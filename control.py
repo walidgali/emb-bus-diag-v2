@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 walidgali
 """Drive the C statistics engine from Python via ctypes.
 
 Build the library first:  make lib

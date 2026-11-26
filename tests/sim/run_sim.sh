@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 walidgali
 # Runs the real CLI against the LD_PRELOAD hardware simulator.
 # Usage: sh tests/sim/run_sim.sh ./emb-bus-diag-v2 ./build/libhwsim.so
 set -u

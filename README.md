@@ -78,3 +78,17 @@ pip install -r requirements-dev.txt
 python3 modbus_server.py &            # register 0 = 0x5DC0 -> 12.0 V on INA219
 ./emb-bus-diag-v2 --bus modbus -a 1 -r 0 -n 3
 ```
+
+## License
+
+Licensed under the [Mozilla Public License 2.0](LICENSE) (MPL-2.0), a file-level copyleft license:
+
+- You may use, modify and ship this project, including inside commercial and closed-source products.
+- If you modify the MPL-licensed source files and distribute them, you must publish those modified files under MPL-2.0 and keep the copyright and license notices.
+- Your own separate files that merely use this code are not affected.
+
+This is a summary, not legal advice; the [LICENSE](LICENSE) file is what applies.
+
+## Commercial use and support
+
+Using the tool is free. Paid help is available on request: custom drivers and sensor profiles, integration into your product, training, and support. To ask, open an issue titled "Commercial" or contact the author through the GitHub profile.

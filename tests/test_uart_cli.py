@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 walidgali
 """End-to-end: run the real CLI against a pseudo-terminal acting as a sensor."""
 import os
 import pty

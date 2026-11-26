@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Copyright (c) 2026 walidgali */
 #include "check.h"
 #include "diag.h"
 #include "embdiag_api.h"

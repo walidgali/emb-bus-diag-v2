@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Copyright (c) 2026 walidgali */
 #include "hal.h"
 #include <fcntl.h>
 #include <linux/i2c.h>

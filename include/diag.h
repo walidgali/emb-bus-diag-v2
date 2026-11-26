@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Copyright (c) 2026 walidgali */
 #ifndef DIAG_H
 #define DIAG_H
 
