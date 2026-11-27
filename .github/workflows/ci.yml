@@ -79,14 +79,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libmosquitto-dev pkg-config mosquitto mosquitto-clients
-          sudo systemctl stop mosquitto || true
       - name: Build
         run: make clean && make WITH_MODBUS=0 WITH_MQTT=1 all
       - name: Publish to a local broker and receive the messages
         run: |
-          printf 'listener 1883 127.0.0.1\nallow_anonymous true\n' > /tmp/mosq.conf
-          mosquitto -c /tmp/mosq.conf -d
+          # The Ubuntu package confines mosquitto with AppArmor: it can only read
+          # /etc/mosquitto, so the test listener goes into conf.d and the service is restarted.
+          printf 'listener 1883 127.0.0.1\nallow_anonymous true\n' | sudo tee /etc/mosquitto/conf.d/ci.conf > /dev/null
+          sudo systemctl restart mosquitto
           sleep 2
+          systemctl is-active mosquitto
           mosquitto_sub -h 127.0.0.1 -t diag/stats -C 3 -W 20 > /tmp/received.txt &
           SUB=$!
           sleep 1
