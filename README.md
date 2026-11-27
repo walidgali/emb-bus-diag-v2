@@ -14,6 +14,8 @@ statistics engine is also exposed as a shared library for Python (ctypes).
 | Path | Purpose |
 |------|---------|
 | `src/hal/` | Bus backends behind one `hal_ops_t` interface |
+| `core/embdiag_core.c` | Portable core: decoding, thresholds, statistics (no libc/heap; see [docs/CORE.md](docs/CORE.md)) |
+| `src/cloud/` | Optional MQTT publishing (`--cloud`, see [docs/CLOUD.md](docs/CLOUD.md)) |
 | `src/diag.c` | Sensor profiles, thresholds, statistics, JSON export (no hardware access) |
 | `src/embdiag_api.c` | Thin C API used by Python (`libembdiag.so`) |
 | `src/main.c` | CLI |
@@ -26,8 +28,8 @@ statistics engine is also exposed as a shared library for Python (ctypes).
 ## Build
 
 ```bash
-sudo apt install build-essential libmodbus-dev pkg-config   # libmodbus is optional
-make            # CLI (Modbus is auto-detected; force with WITH_MODBUS=0 or 1)
+sudo apt install build-essential libmodbus-dev libmosquitto-dev pkg-config   # libmodbus and libmosquitto are optional
+make            # CLI (Modbus and MQTT are auto-detected; force with WITH_MODBUS=0|1, WITH_MQTT=0|1)
 make lib        # libembdiag.so for Python
 make check      # C tests + CLI smoke tests + Python tests
 make SAN=1 test # same C tests with AddressSanitizer + UBSan
@@ -93,9 +95,26 @@ This is a summary, not legal advice; the [LICENSE](LICENSE) file is what applies
 
 Using the tool is free. Paid help is available on request: custom drivers and sensor profiles, integration into your product, training, and support. To ask, open an issue titled "Commercial" or contact the author through the GitHub profile.
 
-## ☁️ Cloud IoT Integration (V3)
-The tool now supports secure MQTT publishing for IoT applications.
-To test locally:
-1. Start the broker: `mosquitto -v`
-2. Subscribe to stats: `mosquitto_sub -t "diag/stats"`
-3. Run the tool with cloud flag: `./emb-bus-diag-v2 --bus mock -n 5 --cloud`
+## What is tested, and how
+
+| Area | How it is tested | Real hardware? |
+|------|------------------|----------------|
+| Statistics, decoding, thresholds (core) | Unit tests, with and without libm; ASan/UBSan; strict C99 and no-undefined-symbols check | n/a |
+| Modbus TCP | End to end against a real pymodbus server in CI | no |
+| UART | Pseudo-terminal test (poll and stream protocols) | no |
+| I2C, SPI, CAN | LD_PRELOAD system-call simulator (`make sim`) | **no** |
+| MQTT cloud client | Fake libmosquitto in CI (payload, TLS/credential options, failures, timeouts); real broker in an informational CI job | no |
+| CLI, JSON report, Python (ctypes) | Smoke tests and unit tests | n/a |
+
+Simulation checks the driver logic, not the behaviour of real devices. Try it on your
+own hardware before relying on it, and report any difference.
+
+## Cloud (MQTT)
+
+`--cloud` publishes every reading to an MQTT broker (QoS 1, waits for the broker's
+acknowledgement). Details, configuration and the security notes (**plain text unless you
+set `EMBDIAG_MQTT_CAFILE`**) are in [docs/CLOUD.md](docs/CLOUD.md).
+
+```bash
+./emb-bus-diag-v2 --bus mock -n 5 --cloud
+```

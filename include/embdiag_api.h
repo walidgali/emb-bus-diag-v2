@@ -3,7 +3,7 @@
 #ifndef EMBDIAG_API_H
 #define EMBDIAG_API_H
 
-#include "diag.h"
+#include "embdiag_core.h"
 
 /* Stable C API for foreign callers (Python ctypes, ...).
  * embdiag_stats_t is the same struct as diag_stats_t, so there is a single

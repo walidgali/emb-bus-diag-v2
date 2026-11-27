@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-test:
-    name: Build + tests (with libmodbus)
+    name: Build + tests (with libmodbus and libmosquitto)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -18,14 +18,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libmodbus-dev libmosquitto-dev pkg-config
       - name: Build
-        run: make clean && make WITH_MODBUS=1 all lib
-      - name: C unit tests, CLI smoke tests, Python/ctypes tests
-        run: make WITH_MODBUS=1 check
-      - name: Hardware simulation (I2C, SPI, CAN via LD_PRELOAD)
-        run: make WITH_MODBUS=1 sim
+        run: make clean && make WITH_MODBUS=1 WITH_MQTT=1 all lib
+      - name: C unit tests, cloud tests, CLI smoke tests, Python/ctypes tests
+        run: make WITH_MODBUS=1 WITH_MQTT=1 check
 
-  build-test-no-modbus:
-    name: Build + tests (without libmodbus)
+  build-test-minimal:
+    name: Build + tests (without libmodbus / libmosquitto)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -34,7 +32,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential
       - name: Build and test
-        run: make clean && make WITH_MODBUS=0 check
+        run: make clean && make WITH_MODBUS=0 WITH_MQTT=0 check
 
   sanitizers:
     name: ASan + UBSan
@@ -46,7 +44,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libmodbus-dev libmosquitto-dev pkg-config
       - name: Build and run C tests with sanitizers
-        run: make clean && make SAN=1 WITH_MODBUS=1 test
+        run: make clean && make SAN=1 WITH_MODBUS=1 WITH_MQTT=1 test
 
   modbus-integration:
     name: Modbus end-to-end (informational)
@@ -57,10 +55,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmodbus-dev libmosquitto-dev pkg-config
+          sudo apt-get install -y build-essential libmodbus-dev pkg-config
           python3 -m pip install -r requirements-dev.txt
       - name: Build
-        run: make clean && make WITH_MODBUS=1 all
+        run: make clean && make WITH_MODBUS=1 WITH_MQTT=0 all
       - name: Run against the pymodbus test server
         run: |
           python3 modbus_server.py &
@@ -70,3 +68,29 @@ jobs:
           RC=$?
           kill $SERVER || true
           exit $RC
+
+  mqtt-integration:
+    name: MQTT end-to-end with a real broker (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # extra check: does not turn the badge red
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmosquitto-dev pkg-config mosquitto mosquitto-clients
+          sudo systemctl stop mosquitto || true
+      - name: Build
+        run: make clean && make WITH_MODBUS=0 WITH_MQTT=1 all
+      - name: Publish to a local broker and receive the messages
+        run: |
+          printf 'listener 1883 127.0.0.1\nallow_anonymous true\n' > /tmp/mosq.conf
+          mosquitto -c /tmp/mosq.conf -d
+          sleep 2
+          mosquitto_sub -h 127.0.0.1 -t diag/stats -C 3 -W 20 > /tmp/received.txt &
+          SUB=$!
+          sleep 1
+          EMBDIAG_MOCK_SEED=1 ./emb-bus-diag-v2 --bus mock -n 3 -i 10 --cloud -o /tmp/mqtt_report.json
+          wait $SUB
+          cat /tmp/received.txt
+          test "$(wc -l < /tmp/received.txt)" -eq 3

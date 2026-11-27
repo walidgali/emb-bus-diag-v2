@@ -136,7 +136,12 @@ static void test_api_wrapper(void) {
         embdiag_stats_update(&a, v[i]);
         stats_update(&b, v[i]);
     }
-    CHECK(memcmp(&a, &b, sizeof a) == 0);
+    /* field by field: struct padding bytes are unspecified, so no memcmp */
+    CHECK(a.samples == b.samples && a.initialized == b.initialized);
+    CHECK(a.min_val == b.min_val && a.max_val == b.max_val && a.avg_val == b.avg_val);
+    CHECK(a.range_val == b.range_val && a.ema_val == b.ema_val && a.variance == b.variance);
+    CHECK(a.trend_slope == b.trend_slope && a.z_score == b.z_score);
+    CHECK(a.sum_y == b.sum_y && a.sum_xy == b.sum_xy && a.prev_val == b.prev_val);
     CHECK(sizeof(embdiag_stats_t) == sizeof(diag_stats_t));
 }
 

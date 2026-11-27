@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* Copyright (c) 2026 walidgali */
-#include "diag.h"
 #include "cloud.h"
+#include "diag.h"
 #include "hal.h"
 #include <errno.h>
 #include <math.h>
@@ -28,8 +28,9 @@ static void usage(FILE *out, const char *prog) {
         "  --metric <voltage|temp|pressure>   override profile metric\n"
         "  --scale <x>    override profile scale factor (must be > 0)\n"
         "  -o <file>      JSON report path                      (default: report.json)\n"
+        "  --cloud        publish every reading over MQTT (see docs/CLOUD.md; configured by EMBDIAG_MQTT_* variables)\n"
         "  -h, --help     show this help\n"
-        "Exit codes: 0 ok, 1 error, 2 a reading was CRITICAL/ERROR\n", prog);
+        "Exit codes: 0 ok, 1 error (incl. failed cloud delivery), 2 a reading was CRITICAL/ERROR\n", prog);
 }
 
 static int parse_ulong(const char *s, unsigned long max, unsigned long *out) {
@@ -49,16 +50,15 @@ static int bad_arg(const char *opt, const char *val) {
 
 int main(int argc, char **argv) {
     hal_bus_type_t bus_type = BUS_TYPE_MOCK;
-    int enable_cloud = 0;
     unsigned long bus_id = 1, dev_addr = 1, reg_addr = 0, count = 5, interval = 200;
     diag_profile_t profile = PROFILE_INA219;
     int metric_set = 0, scale_set = 0;
     diag_metric_t metric_opt = METRIC_VOLTAGE;
     double scale_opt = 0.0;
     const char *report_path = "report.json";
+    int enable_cloud = 0;
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--cloud") == 0) { enable_cloud = 1; continue; }
         const char *a = argv[i];
         const char *v = (i + 1 < argc) ? argv[i + 1] : NULL;
 
@@ -104,6 +104,8 @@ int main(int argc, char **argv) {
             if (end == v || *end != '\0' || !isfinite(scale_opt) || scale_opt <= 0.0) return bad_arg(a, v);
             scale_set = 1;
             i++;
+        } else if (strcmp(a, "--cloud") == 0) {
+            enable_cloud = 1;
         } else if (strcmp(a, "-o") == 0) {
             if (!v || !*v) return bad_arg(a, v);
             report_path = v;
@@ -139,6 +141,17 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE_;
     }
 
+    cloud_ctx_t *cloud = NULL;
+    if (enable_cloud) {
+        cloud = cloud_open();
+        if (!cloud) {                      /* fail fast: the user asked for cloud delivery */
+            ops->deinit(dev);
+            hal_device_destroy(dev);
+            return EXIT_FAILURE_;
+        }
+    }
+    unsigned long cloud_failures = 0;
+
     diag_stats_t stats;
     stats_init(&stats);
     diag_reading_t last_reading;
@@ -161,8 +174,8 @@ int main(int argc, char **argv) {
         memset(&reading, 0, sizeof(reading));
         evaluate_signal(proc_raw, scale, metric, &reading);
         stats_update(&stats, reading.scaled_val);
-        if (enable_cloud) { cloud_mqtt_publish(&reading, &stats); }
         last_reading = reading;
+        if (cloud && cloud_publish(cloud, &reading, &stats) != 0) cloud_failures++;
         if (reading.status > worst) worst = reading.status;
 
         printf("[%lu/%lu] Val=%.4f %s | %s | EMA=%.4f | Z=%.2f%s | Trend=%.4f | Range=%.4f\n",
@@ -181,6 +194,12 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Error: could not write %s\n", report_path);
             if (rc == EXIT_OK) rc = EXIT_FAILURE_;
         }
+    }
+
+    cloud_close(cloud);
+    if (cloud_failures > 0) {
+        fprintf(stderr, "Error: %lu reading(s) could not be delivered to the cloud.\n", cloud_failures);
+        if (rc == EXIT_OK) rc = EXIT_FAILURE_;
     }
 
     ops->deinit(dev);

@@ -41,6 +41,10 @@ done
 EMBDIAG_UART_DEV=/dev/nonexistent-tty "$BIN" --bus uart > /dev/null 2>&1; rc=$?
 [ $rc -eq 1 ] && ok "missing uart device -> exit 1" || bad "uart missing returned $rc"
 
+# 5c. --cloud with an unreachable broker (or without MQTT support) fails fast, exit 1
+EMBDIAG_MQTT_PORT=1 "$BIN" --bus mock -n 1 -i 1 --cloud -o "$TMP/cl.json" > "$TMP/cl.txt" 2>&1; rc=$?
+[ $rc -eq 1 ] && grep -qi "cloud\|mqtt" "$TMP/cl.txt" && ok "--cloud without a broker -> exit 1" || bad "--cloud failure (rc=$rc)"
+
 # 6. CRITICAL readings give exit code 2 (raw profile: 12000..12999 * 0.01 = 120+ V)
 "$BIN" --profile raw -n 2 -i 1 -o "$TMP/c.json" > "$TMP/c.txt" 2>&1; rc=$?
 [ $rc -eq 2 ] && ok "critical reading -> exit 2" || bad "critical returned $rc (want 2)"
